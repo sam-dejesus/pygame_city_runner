@@ -36,6 +36,10 @@ class Player(pygame.sprite.Sprite):
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
+        self.vel_y = 0
+        self.gravity = 5
+        self.jump_force = -5
+        self.on_ground = True 
 
     def update(self):
         self.counter += 1
@@ -46,6 +50,21 @@ class Player(pygame.sprite.Sprite):
             if self.index >= len(self.images):
                 self.index = 0
         self.image = self.images[self.index]
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE] and self.on_ground:
+            self.vel_y = self.jump_force
+            self.on_ground = False
+
+        # gravity physics 
+        self.vel_y += self.gravity * dt
+        self.rect.y += self.vel_y
+
+        # checks if the player hits the ground
+        if self.rect.bottom >= 670:  
+            self.rect.bottom = 670
+            self.vel_y = 0
+            self.on_ground = True
 
 
 # instantiates from the group class to manage all sprite animations
@@ -70,7 +89,7 @@ while run:
     # reset floor position if it goes beyond the screen width
     if floor_scroll <= -floor_width:
         floor_scroll = 0
-        
+
     player_group.draw(screen)
     player_group.update()
 
