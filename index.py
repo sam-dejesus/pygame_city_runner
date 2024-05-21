@@ -66,12 +66,42 @@ class Player(pygame.sprite.Sprite):
             self.vel_y = 0
             self.on_ground = True
 
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.images = []
+        self.index = 0
+        self.counter = 0
+        for num in range(1,9):
+            img = pygame.image.load(f'img/player/run//Run-{num}.png')
+            self.images.append(img)
+        self.image = self.images[self.index]
+        self.rect = self.image.get_rect()
+        self.rect.center = [x, y]
+
+    def update(self):
+        self.counter += 1
+        cooldown = 5
+        if self.counter > cooldown:
+            self.counter = 0
+            self.index += 1
+            if self.index >= len(self.images):
+                self.index = 0
+        self.image = self.images[self.index]
+        self.image = pygame.transform.flip(self.image, True, False)
+
+
 
 # instantiates from the group class to manage all sprite animations
 player_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
 # instantiate the player class and positions the player sprite
+bad_person = Enemy(375, 630)
 person = Player(175, 630) 
+
 player_group.add(person)
+enemy_group.add(bad_person)
+
 run = True
 while run:
     dt = clock.tick(fps) / 1000.0 
@@ -91,7 +121,9 @@ while run:
         floor_scroll = 0
 
     player_group.draw(screen)
+    enemy_group.draw(screen)
     player_group.update()
+    enemy_group.update()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
