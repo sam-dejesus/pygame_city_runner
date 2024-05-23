@@ -1,6 +1,7 @@
 # imports pygame lib
 import pygame
 from pygame.locals import *
+import random
 pygame.init()
 
 #  used to set the fps speed
@@ -23,8 +24,20 @@ floor_width = 1280
 floor_height = 100  
 floor = pygame.transform.scale(floor, (floor_width, floor_height))
 
-enemy_freq = 1500
-last_enemy = pygame.time.get_ticks() - enemy_freq
+# game Var 
+enemy_freq_min = 1700  
+enemy_freq_max = 7000  
+last_enemy = pygame.time.get_ticks() - random.randint(enemy_freq_min, enemy_freq_max)
+
+
+# score code
+score = 0
+passed_enemy = False
+font = pygame.font.SysFont('Bauhaus 93', 90)
+white = (255, 255, 255)
+def draw_text(text, font, color, x, y):
+    image = font.render(text, True, color, )
+    screen.blit(image, (x, y))
 
 # create the player class
 class Player(pygame.sprite.Sprite):
@@ -40,8 +53,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
         self.vel_y = 0
-        self.gravity = 5
-        self.jump_force = -5
+        self.gravity = 8
+        self.jump_force = -8
         self.on_ground = True 
 
     def update(self):
@@ -68,6 +81,8 @@ class Player(pygame.sprite.Sprite):
             self.rect.bottom = 670
             self.vel_y = 0
             self.on_ground = True
+    def draw_hitbox(self, surface):
+        pygame.draw.rect(surface, (255, 0, 0), self.rect, 2)
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -81,6 +96,7 @@ class Enemy(pygame.sprite.Sprite):
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
+        self.passed = False
 
     def update(self):
         self.rect.x -= 5
@@ -95,6 +111,8 @@ class Enemy(pygame.sprite.Sprite):
                 self.index = 0
         self.image = self.images[self.index]
         self.image = pygame.transform.flip(self.image, True, False)
+    def draw_hitbox(self, surface):
+        pygame.draw.rect(surface, (255, 0, 0), self.rect, 2)
 
 
 
@@ -102,11 +120,11 @@ class Enemy(pygame.sprite.Sprite):
 player_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 # instantiate the player class and positions the player sprite
-# bad_person = Enemy(675, 630)
+
 person = Player(175, 630) 
 
 player_group.add(person)
-# enemy_group.add(bad_person)
+
 
 run = True
 game_over = False
@@ -120,15 +138,24 @@ while run:
     # draws the floor
     screen.blit(floor, (floor_scroll, 620)) 
     screen.blit(floor, (floor_scroll + floor_width, 620))  
+
+    # score functionality
+    for enemy in enemy_group:
+            if not enemy.passed and person.rect.left > enemy.rect.right:
+                score += 1
+                enemy.passed = True
+    
+    draw_text(str(score), font, white, 600, 10)
     
     if game_over == False:
-    # generate new enemies
-        time_now = pygame.time.get_ticks()
+    
     # checks if games over
         if pygame.sprite.groupcollide(player_group, enemy_group, False, True):
             game_over = True
 
-        if time_now - last_enemy > enemy_freq:
+        # generate new enemies
+        time_now = pygame.time.get_ticks()
+        if time_now - last_enemy > random.randint(enemy_freq_min, enemy_freq_max):  # Step 3: Randomize enemy frequency
             bad_person = Enemy(1280, 630)
             enemy_group.add(bad_person)
             last_enemy = time_now
@@ -145,6 +172,11 @@ while run:
         enemy_group.draw(screen)
         player_group.update()
         enemy_group.update()
+
+    for player in player_group:
+            player.draw_hitbox(screen)
+    for enemy in enemy_group:
+            enemy.draw_hitbox(screen)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
