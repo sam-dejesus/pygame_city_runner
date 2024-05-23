@@ -23,6 +23,9 @@ floor_width = 1280
 floor_height = 100  
 floor = pygame.transform.scale(floor, (floor_width, floor_height))
 
+enemy_freq = 1500
+last_enemy = pygame.time.get_ticks() - enemy_freq
+
 # create the player class
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -80,6 +83,9 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.center = [x, y]
 
     def update(self):
+        self.rect.x -= 5
+        if self.rect.right < 0:
+            self.kill()
         self.counter += 1
         cooldown = 5
         if self.counter > cooldown:
@@ -96,13 +102,15 @@ class Enemy(pygame.sprite.Sprite):
 player_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 # instantiate the player class and positions the player sprite
-bad_person = Enemy(375, 630)
+# bad_person = Enemy(675, 630)
 person = Player(175, 630) 
 
 player_group.add(person)
-enemy_group.add(bad_person)
+# enemy_group.add(bad_person)
 
 run = True
+game_over = False
+
 while run:
     dt = clock.tick(fps) / 1000.0 
 
@@ -113,17 +121,30 @@ while run:
     screen.blit(floor, (floor_scroll, 620)) 
     screen.blit(floor, (floor_scroll + floor_width, 620))  
     
+    if game_over == False:
+    # generate new enemies
+        time_now = pygame.time.get_ticks()
+    # checks if games over
+        if pygame.sprite.groupcollide(player_group, enemy_group, False, True):
+            game_over = True
+
+        if time_now - last_enemy > enemy_freq:
+            bad_person = Enemy(1280, 630)
+            enemy_group.add(bad_person)
+            last_enemy = time_now
+
+    
     # smooth scrolling
-    floor_scroll -= scroll_speed * dt
+        floor_scroll -= scroll_speed * dt
     
     # reset floor position if it goes beyond the screen width
-    if floor_scroll <= -floor_width:
-        floor_scroll = 0
+        if floor_scroll <= -floor_width:
+            floor_scroll = 0
 
-    player_group.draw(screen)
-    enemy_group.draw(screen)
-    player_group.update()
-    enemy_group.update()
+        player_group.draw(screen)
+        enemy_group.draw(screen)
+        player_group.update()
+        enemy_group.update()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
