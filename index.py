@@ -28,8 +28,7 @@ floor = pygame.transform.scale(floor, (floor_width, floor_height))
 enemy_freq_min = 1700  
 enemy_freq_max = 7000  
 last_enemy = pygame.time.get_ticks() - random.randint(enemy_freq_min, enemy_freq_max)
-
-
+    
 # score code
 score = 0
 passed_enemy = False
@@ -43,34 +42,46 @@ def draw_text(text, font, color, x, y):
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.images = []
+        self.run_images = []  
+        self.jump_images = []  
         self.index = 0
         self.counter = 0
-        for num in range(1,9):
-            img = pygame.image.load(f'img/player/run//Run-{num}.png')
-            self.images.append(img)
-        self.image = self.images[self.index]
+        for num in range(1, 9):
+            run_img = pygame.image.load(f'img/player/run/Run-{num}.png')
+            jump_img = pygame.image.load(f'img/player/jump/Jump-{num}.png')
+            self.run_images.append(run_img)
+            self.jump_images.append(jump_img)
+        self.image = self.run_images[self.index]  
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
         self.vel_y = 0
         self.gravity = 8
         self.jump_force = -8
         self.on_ground = True 
+        self.is_jumping = False 
+        
 
     def update(self):
         self.counter += 1
         cooldown = 5
         if self.counter > cooldown:
             self.counter = 0
-            self.index += 1
-            if self.index >= len(self.images):
-                self.index = 0
-        self.image = self.images[self.index]
+            if self.is_jumping:  
+                self.index += 1
+                if self.index >= len(self.jump_images):
+                    self.index = 0
+                self.image = self.jump_images[self.index]
+            else: 
+                self.index += 1
+                if self.index >= len(self.run_images):
+                    self.index = 0
+                self.image = self.run_images[self.index]
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.on_ground:
             self.vel_y = self.jump_force
             self.on_ground = False
+            self.is_jumping = True  
 
         # gravity physics 
         self.vel_y += self.gravity * dt
@@ -81,8 +92,12 @@ class Player(pygame.sprite.Sprite):
             self.rect.bottom = 670
             self.vel_y = 0
             self.on_ground = True
+            self.is_jumping = False 
+
     def draw_hitbox(self, surface):
         pygame.draw.rect(surface, (255, 0, 0), self.rect, 2)
+    
+
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -114,16 +129,27 @@ class Enemy(pygame.sprite.Sprite):
     def draw_hitbox(self, surface):
         pygame.draw.rect(surface, (255, 0, 0), self.rect, 2)
 
+class Life(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.original_image = pygame.image.load('img/player/heart2.png')
+        self.image = pygame.transform.scale(self.original_image, (50, 50))  # Adjust the desired width and height
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.image.set_colorkey((255, 255, 255))  # Set white color (RGB: 255, 255, 255) to transparent
 
 
 # instantiates from the group class to manage all sprite animations
 player_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
+life_group = pygame.sprite.Group()
+
 # instantiate the player class and positions the player sprite
-
 person = Player(175, 630) 
-
 player_group.add(person)
+
+heart = Life(100, 100)
+life_group.add(heart)
 
 
 run = True
@@ -155,7 +181,7 @@ while run:
 
         # generate new enemies
         time_now = pygame.time.get_ticks()
-        if time_now - last_enemy > random.randint(enemy_freq_min, enemy_freq_max):  # Step 3: Randomize enemy frequency
+        if time_now - last_enemy > random.randint(enemy_freq_min, enemy_freq_max):
             bad_person = Enemy(1280, 630)
             enemy_group.add(bad_person)
             last_enemy = time_now
@@ -170,6 +196,7 @@ while run:
 
         player_group.draw(screen)
         enemy_group.draw(screen)
+        life_group.draw(screen)
         player_group.update()
         enemy_group.update()
 
