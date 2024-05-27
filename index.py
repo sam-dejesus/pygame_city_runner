@@ -4,6 +4,11 @@ import random
 
 pygame.init()
 
+#plays music
+pygame.mixer.init()
+pygame.mixer.music.load('assets/audio/background_music.flac')
+pygame.mixer.music.play(-1)
+
 # fps 
 clock = pygame.time.Clock()
 fps = 60
@@ -17,8 +22,8 @@ pygame.display.set_caption('City Runner')
 # stores background and floor img in a var as well as sets scroll speed
 floor_scroll = 0
 scroll_speed = 400 
-bg = pygame.image.load('img/background/a.webp')
-floor = pygame.image.load('img/background/road.gif')
+bg = pygame.image.load('assets/img/background/a.webp')
+floor = pygame.image.load('assets/img/background/road.gif')
 
 # Stretch the floor image to fit the screen width
 floor_width = 1280
@@ -50,11 +55,11 @@ class Player(pygame.sprite.Sprite):
         self.index = 0
         self.counter = 0
         for num in range(1, 4):
-            dead_img = pygame.image.load(f'img/player/dead/dead-{num}.png')
+            dead_img = pygame.image.load(f'assets/img/player/dead/dead-{num}.png')
             self.dead_images.append(dead_img)
         for num in range(1, 9):
-            run_img = pygame.image.load(f'img/player/run/Run-{num}.png')
-            jump_img = pygame.image.load(f'img/player/jump/Jump-{num}.png')
+            run_img = pygame.image.load(f'assets/img/player/run/Run-{num}.png')
+            jump_img = pygame.image.load(f'assets/img/player/jump/Jump-{num}.png')
             self.run_images.append(run_img)
             self.jump_images.append(jump_img)
             
@@ -124,7 +129,7 @@ class Enemy(pygame.sprite.Sprite):
         self.index = 0
         self.counter = 0
         for num in range(1, 9):
-            img = pygame.image.load(f'img/player/run/Run-{num}.png')
+            img = pygame.image.load(f'assets/img/player/run/Run-{num}.png')
             self.images.append(img)
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
@@ -152,7 +157,7 @@ class Enemy(pygame.sprite.Sprite):
 class Life(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.original_image = pygame.image.load('img/player/heart2.png')
+        self.original_image = pygame.image.load('assets/img/player/heart2.png')
         self.image = pygame.transform.scale(self.original_image, (50, 50))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
@@ -234,5 +239,5 @@ while run:
         if event.type == pygame.QUIT:
             run = False
     pygame.display.update()
-
+pygame.mixer.music.stop()
 pygame.quit()
