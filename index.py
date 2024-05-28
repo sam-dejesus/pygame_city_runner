@@ -10,6 +10,7 @@ pygame.mixer.music.load('assets/audio/background_music.flac')
 pygame.mixer.music.set_volume(0.5)
 hit = pygame.mixer.Sound('assets/audio/hit.wav')
 hit.set_volume(1.0)
+game_end = pygame.mixer.Sound('assets/audio/game_over.wav')
 pygame.mixer.music.play(-1)
 
 # fps 
@@ -181,6 +182,7 @@ person = Player(175, 630)
 player_group.add(person)
 
 run = True
+game_end_sound_played = False
 game_over = False
 
 while run:
@@ -236,8 +238,12 @@ while run:
     life_group.empty() 
     draw_hearts(person.health)  
     if person.health == 0:
+        if not game_end_sound_played:
+            game_end.play()
+            game_end_sound_played = True
         game_over = True
         person.is_dead = True
+        
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
