@@ -7,6 +7,9 @@ pygame.init()
 #plays music
 pygame.mixer.init()
 pygame.mixer.music.load('assets/audio/background_music.flac')
+pygame.mixer.music.set_volume(0.5)
+hit = pygame.mixer.Sound('assets/audio/hit.wav')
+hit.set_volume(1.0)
 pygame.mixer.music.play(-1)
 
 # fps 
@@ -201,6 +204,7 @@ while run:
         # checks if games over
         if pygame.sprite.groupcollide(player_group, enemy_group, False, True):
             person.health -= 1
+            hit.play()
 
         # generate new enemies
         time_now = pygame.time.get_ticks()
