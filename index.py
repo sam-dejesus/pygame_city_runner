@@ -4,7 +4,7 @@ import random
 
 pygame.init()
 
-#plays music
+# plays music
 pygame.mixer.init()
 pygame.mixer.music.load('assets/audio/background_music.flac')
 pygame.mixer.music.set_volume(0.5)
@@ -13,7 +13,7 @@ hit.set_volume(1.0)
 game_end = pygame.mixer.Sound('assets/audio/game_over.wav')
 pygame.mixer.music.play(-1)
 
-# fps 
+# fps
 clock = pygame.time.Clock()
 fps = 60
 
@@ -25,7 +25,7 @@ pygame.display.set_caption('City Runner')
 
 # stores background and floor img in a var as well as sets scroll speed
 floor_scroll = 0
-scroll_speed = 400 
+scroll_speed = 400
 bg = pygame.image.load('assets/img/background/a.webp')
 floor = pygame.image.load('assets/img/background/road.gif')
 
@@ -49,6 +49,9 @@ def draw_text(text, font, color, x, y):
     image = font.render(text, True, color)
     screen.blit(image, (x, y))
 
+# restart button
+btn = pygame.image.load('assets/img/restart.png')
+
 # create the player class
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -66,7 +69,7 @@ class Player(pygame.sprite.Sprite):
             jump_img = pygame.image.load(f'assets/img/player/jump/Jump-{num}.png')
             self.run_images.append(run_img)
             self.jump_images.append(jump_img)
-            
+
         self.image = self.run_images[self.index]
         self.rect = self.image.get_rect()
         self.rect.center = [x, y]
@@ -76,14 +79,14 @@ class Player(pygame.sprite.Sprite):
         self.on_ground = True
         self.is_jumping = False
         self.is_dead = False
-        self.health = 5 
+        self.health = 5
         self.dead_animation = False
 
     def update(self, game_over):
         self.counter += 1
         cooldown = 5
         if self.is_dead and not self.dead_animation:
-            cooldown = 30  
+            cooldown = 30
 
         if self.counter > cooldown:
             self.counter = 0
@@ -96,7 +99,7 @@ class Player(pygame.sprite.Sprite):
                 if not self.dead_animation:
                     self.index += 1
                     if self.index >= len(self.dead_images):
-                        self.index = len(self.dead_images) - 1  
+                        self.index = len(self.dead_images) - 1
                         self.dead_animation = True
                     self.image = self.dead_images[self.index]
             else:
@@ -169,8 +172,25 @@ class Life(pygame.sprite.Sprite):
 
 def draw_hearts(player_health):
     for i in range(player_health):
-        heart = Life(20 + i * 60, 20)  
+        heart = Life(20 + i * 60, 20)
         life_group.add(heart)
+
+
+class Button():
+    def __init__(self, x, y, image):
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+
+    def draw(self):
+        action = False
+        pos = pygame.mouse.get_pos()
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1:
+                action = True
+
+        screen.blit(self.image, (self.rect.x, self.rect.y))
+        return action
 
 # instantiates from the group class to manage all sprite animations
 player_group = pygame.sprite.Group()
@@ -180,6 +200,23 @@ life_group = pygame.sprite.Group()
 # instantiate the player class and positions the player sprite
 person = Player(175, 630)
 player_group.add(person)
+
+# instantiate the button class
+button = Button(1280//2 - 50, 720//2 - 100, btn)
+
+def reset_game():
+    global score, game_end_sound_played, person, floor_scroll, last_enemy
+    enemy_group.empty()
+    player_group.empty()
+    life_group.empty()
+    score = 0
+    game_end_sound_played = False
+    person = Player(175, 630)
+    player_group.add(person)
+    floor_scroll = 0
+    last_enemy = pygame.time.get_ticks() - random.randint(enemy_freq_min, enemy_freq_max)
+    game_over = False
+    return game_over
 
 run = True
 game_end_sound_played = False
@@ -235,15 +272,16 @@ while run:
         enemy.draw_hitbox(screen)
 
     # Update the hearts display
-    life_group.empty() 
-    draw_hearts(person.health)  
+    life_group.empty()
+    draw_hearts(person.health)
     if person.health == 0:
         if not game_end_sound_played:
             game_end.play()
             game_end_sound_played = True
         game_over = True
         person.is_dead = True
-        
+        if button.draw():
+            game_over = reset_game()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
