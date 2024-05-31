@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 import random
-from classes import Enemy
+from classes import Enemy1, Drone1
 
 pygame.init()
 
@@ -36,8 +36,8 @@ floor_height = 100
 floor = pygame.transform.scale(floor, (floor_width, floor_height))
 
 # game Var
-enemy_freq_min = 1700
-enemy_freq_max = 7000
+enemy_freq_min = 1000
+enemy_freq_max = 3000
 last_enemy = pygame.time.get_ticks() - random.randint(enemy_freq_min, enemy_freq_max)
 
 # score code
@@ -187,6 +187,14 @@ def reset_game():
     game_over = False
     return game_over
 
+
+def create_random_enemy():
+    enemy_type = random.choice(["normal", "flying"])
+    if enemy_type == "normal":
+        return Enemy1(1280, 630)
+    elif enemy_type == "flying":
+        return Drone1(1280, 400)
+
 run = True
 game_end_sound_played = False
 game_over = False
@@ -217,8 +225,8 @@ while run:
         # generate new enemies
         time_now = pygame.time.get_ticks()
         if time_now - last_enemy > random.randint(enemy_freq_min, enemy_freq_max):
-            bad_person = Enemy(1280, 630)
-            enemy_group.add(bad_person)
+            avoid = create_random_enemy()
+            enemy_group.add(avoid)
             last_enemy = time_now
 
         # smooth scrolling
